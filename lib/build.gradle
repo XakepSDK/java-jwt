@@ -32,13 +32,18 @@ oss {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion = JavaLanguageVersion.of(11)
     }
 }
 
 compileJava {
-    sourceCompatibility '1.8'
-    targetCompatibility '1.8'
+    exclude 'module-info.java'
+
+    options.compilerArgs = ['--release', '8']
+}
+
+javadoc {
+    exclude 'module-info.java'
 }
 
 dependencies {
@@ -63,3 +68,19 @@ test {
         exceptionFormat "short"
     }
 }
+
+task compileModuleInfoJava(type: JavaCompile) {
+    classpath = files()
+    source = 'src/main/java/module-info.java'
+    destinationDir = compileJava.destinationDir
+
+    doFirst {
+        options.compilerArgs = [
+                '--release', '9',
+                '--module-path', compileJava.classpath.asPath
+        ]
+    }
+}
+
+compileModuleInfoJava.dependsOn compileJava
+classes.dependsOn compileModuleInfoJava
